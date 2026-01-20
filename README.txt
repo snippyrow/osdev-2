@@ -1,1 +1,1 @@
-This is a testing file!
+This is my second version of the operating system titled "VARA". More to come.
