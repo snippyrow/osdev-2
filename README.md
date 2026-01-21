@@ -5,3 +5,7 @@ OS Boot Order:
 (3) Fetch VBIOS graphical information
 (4) Load general GDT and enter protected mode
 (5) Jump to kernel
+
+(once kernel is ready)
+
+(6) Set-up IDT

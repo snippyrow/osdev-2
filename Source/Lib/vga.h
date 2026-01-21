@@ -3,10 +3,6 @@
 
 // C/C++ naming magic when using external library headers
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 
 void vga_fillrect(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint32_t color);
@@ -61,9 +57,5 @@ extern uint16_t WIN_HEIGHT;
 extern uint8_t WIN_BPP;
 
 extern uint8_t *WIN_FBUFF;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // VGA_H

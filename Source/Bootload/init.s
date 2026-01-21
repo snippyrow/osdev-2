@@ -70,14 +70,14 @@ begin:
 
     ; Now we can iterate like a string to find the best video mode.
     ; Simple algorithm, either select the desired mode if supported or pick the last one in the table.
-    ; Clear DX
-    xor dx, dx
+    ; Clear bp
+    xor bp, bp
 next_v_mode:
     lodsw ; AX becomes the word from ptr DS:SI
     cmp ax, 0xffff ; End search
     je end_v_enum ; Zero modes found, terminate
 
-    mov cx, ax ; Save it to cx
+    mov bx, ax ; Save it to bx
 
     ; Fetch information about each mode
     mov ax, MODE_INFO >> 4
@@ -85,6 +85,7 @@ next_v_mode:
     xor di, di
 
     mov ax, 0x4f01 ; Code for fetching mode info
+    mov cx, bx ; Reload word for mode
     int 0x10
 
     cmp al, 0x4f ; Check if this mode exists
@@ -95,23 +96,26 @@ next_v_mode:
     test ax, 0x0001 ; Supported mode?
     jz next_v_mode
     test ax, 0x0010 ; Is it a video mode or a text-based mode? (ONLY allow video mode!! anything else fucks with the system..)
+    jz next_v_mode
+    test ax, 0x0080 ; Linear framebuffer?
     jz next_v_mode ; Unsupported
 
+    mov bp, bx
+
     ; Is it desired?
-    cmp cx, VIDEO_DESIRED
+    cmp bx, VIDEO_DESIRED
+    mov bx, cx
     je submit_v_mode
 
-    ; Supported but not desired, copy to DX
-    mov dx, cx
+    ; Supported but not desired
     jmp next_v_mode
-
 end_v_enum:
     ; If no video modes at all, and DX is empty, terminate
-    test dx, dx
+    test bp, bp
     jz mbr_err
 
     ; Otherwise, copy back to CX
-    mov cx, dx
+    mov cx, bp
 
 ; CX will be the video mode used during boot.
 submit_v_mode:
