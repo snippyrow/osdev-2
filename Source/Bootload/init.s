@@ -10,6 +10,7 @@ MODE_INFO equ 0x6200 ; Info about the specific mode we're using
 KERNEL equ 0x7e00 ; Address where the kernel actually begins
 
 VIDEO_DESIRED equ 0x112 ; 640x480, 24bpp (Most GPU's support this implicitly.)
+SP_TOP equ 0x90000 ; Sufficiently high. If the stack reaches the code segment, something has gone very wrong.
 
 %include "Source/macroasm.s"
 
@@ -35,7 +36,7 @@ begin:
     mov dh, 0
     mov dl, 0x80 ; "C:/ Drive"
 
-    ; int 0x13 ; Call interrupt for reading HDD
+    int 0x13 ; Call interrupt for reading HDD
 
     jc mbr_err
 
@@ -143,7 +144,9 @@ submit_v_mode:
 
 [bits 32]
 PMODE_Start:
-    jmp $
+    mov esp, SP_TOP
+
+    jmp code_seg:KERNEL
 
 [bits 16]
 p_start:
