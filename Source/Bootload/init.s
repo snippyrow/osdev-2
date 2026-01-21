@@ -30,7 +30,7 @@ begin:
 
     ; Sector 1 is MBR, >1 is kernel.
     mov ah, 2
-    mov al, 16
+    mov al, 32
     mov ch, 0
     mov cl, 2
     mov dh, 0
@@ -58,7 +58,7 @@ begin:
     mov ax, 0x4f00 ; Load code for reading controller
     int 0x10
 
-    ; If Al /= 0x4F, something went wrong with reading the controller. Terminate.
+    ; If al /= 0x4F, something went wrong with reading the controller. Terminate.
     cmp al, 0x4f
     jne mbr_err
 
@@ -144,6 +144,14 @@ submit_v_mode:
 
 [bits 32]
 PMODE_Start:
+    ; Point registers towards our new GDT. Otherwise, reads and writes go to the wrong places.
+    mov ax, data_seg
+    mov ds, ax
+    mov ss, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
     mov esp, SP_TOP
 
     jmp code_seg:KERNEL
