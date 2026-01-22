@@ -31,3 +31,5 @@ dd if=Temp/osystem.bin of=main.img bs=512 seek=1
 
 # Append zeroes to prevent read errors from BIOS
 dd if=/dev/zero bs=1 count=200000 >> main.img
+
+# Add compiler to PATH: export PATH="/usr/local/i386elfgcc/bin:$PATH"

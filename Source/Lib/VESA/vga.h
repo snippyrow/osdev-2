@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-void vga_fillrect(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint32_t color);
+void vga_fillrect(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint32_t color, bool mirror = true);
 void vga_init();
 
 // VESA video structure. When a resolution from the BIOS list was selected while the MBR was running, the structure was saved into [0x6200].

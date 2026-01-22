@@ -48,7 +48,7 @@ void idt_install() {
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    outb(0x21, 0b11111011); // only unmask PIT, Cascade PIC and keyboard (IRQ0 and IRQ1 and IRQ2)
+    outb(0x21, 0b11111010); // only unmask PIT, Cascade PIC and keyboard (IRQ0 and IRQ1 and IRQ2)
     outb(0xA1, 0b11111111); // Only unmask PS/2 mouse
 
 

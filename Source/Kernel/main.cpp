@@ -1,6 +1,8 @@
-#include "vga.h"
+#include "VESA/vga.h"
 #include "stdint.h"
+#include "stdio.h"
 #include "Interrupts/idt.h"
+#include "Interrupts/pit.h"
 
 uint8_t a = 0;
 
@@ -9,11 +11,12 @@ extern "C" void kmain() {
     idt_install();
     uint8_t* fb = WIN_FBUFF;
     /* Set pixel (0,0) to red */
-    for (uint8_t x=0;x<64;x++) {
-        fb[x*3] = 0x00;  // Blue
-        fb[x*3 + 1] = 0x00;  // Green
-        fb[x*3 + 2] = 0xFF;  // Red
-    }
+
+    vga_fillrect(50, 50, 100, 100, 0x00FF0000);
+
+    pit_setfreq(30);
+    //sti();
+
     while (1) {
         a = a + 1;
     }
