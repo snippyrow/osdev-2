@@ -20,6 +20,8 @@ uint8_t inb(uint16_t port);
 uint16_t inw(uint16_t port);
 uint32_t inl(uint16_t port);
 
+void insw(uint16_t port, void* buffer, uint32_t count);
+
 void iret();
 
 void sti();

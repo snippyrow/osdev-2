@@ -26,10 +26,38 @@ i386-elf-ld -T kernel.ld -e _start -o "Temp/osystem.bin" -Ttext 0x7e00 "Temp/obj
 
 # Append the MBR, compiled system and leading zeroes
 # "main.img" is the final product of the build process.
-dd if=Temp/init.bin of=main.img bs=512 count=63
-dd if=Temp/osystem.bin of=main.img bs=512 seek=1
+# dd if=Temp/init.bin of=main.img bs=512 count=63
+# dd if=Temp/osystem.bin of=main.img bs=512 seek=1
+
+# Attach font to sector 100. In the future, create a filesystem, make file I/O and put it into a bin.
+# dd if=Assets/font.bin of=main.img bs=512 seek=100
 
 # Append zeroes to prevent read errors from BIOS
-dd if=/dev/zero bs=1 count=200000 >> main.img
+# dd if=/dev/zero bs=1 count=200000 >> main.img
 
 # Add compiler to PATH: export PATH="/usr/local/i386elfgcc/bin:$PATH"
+
+
+## NEW FAT32 FS
+# Create the FAT32 image placeholder
+dd if=/dev/zero of=myfat32.img bs=1M count=256 status=progress
+
+# Format to FAT32
+sudo mkfs.fat -F 32 -n "MYDISK" myfat32.img
+# Replace the first 512 bytes of the newly generated image with the compiled MBR
+# MBR already contains all the necessary FAT32 stuff.
+dd if=Temp/init.bin of=myfat32.img bs=1 count=512 conv=notrunc
+# Append the second-stage kernel *outside* of the FAT32 FS. Lightweight option.
+cat Temp/osystem.bin >> myfat32.img
+
+# Append some zeroes at the end to prevent the BIOSfrom throwing errors.
+dd if=/dev/zero bs=1 count=200000 >> myfat32.img
+# Truncate to a multiple of 512 (within one sector)
+truncate -s %512 myfat32.img
+
+# mount filesystem if not done: sudo mount -o loop myfat32.img /mnt/osdev-fat32
+#sudo cp Temp/osystem.bin /mnt/osdev-fat32
+
+# To run it as qemu, use qemu-system-x86_64 -enable-kvm -drive file=myfat32.img
+
+# To convert the raw image to a *.vdi, use VBoxManage convertfromraw myfat32.img myfat32.vdi --format VDI

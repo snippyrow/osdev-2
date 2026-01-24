@@ -33,6 +33,17 @@ uint32_t inl(uint16_t port) {
     return value;
 }
 
+// Where things get really funky, when we input a string from an IO port.
+void insw(uint16_t port, void* buffer, uint32_t count) {
+    asm volatile (
+        "rep insw"
+        : "+D"(buffer), "+c"(count)
+        : "d"(port)
+        : "memory"
+    );
+}
+
+
 // Return from interrupt (maybe don't use this.....)
 void iret() {
     asm volatile("iret");

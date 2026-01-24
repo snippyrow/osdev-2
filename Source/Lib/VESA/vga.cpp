@@ -47,7 +47,7 @@ void vga_init() {
     uint32_t buffer_blocks = (WIN_WIDTH * WIN_HEIGHT) * (WIN_BPP / 8.0f) / 512;
     uint32_t* buffer = kmalloc(buffer_blocks);
     WIN_FBUFF = (uint8_t *)buffer;
-    VGA_FBUFF = (uint8_t *)vbe_info -> framebuffer; // TEST, COMMENT LATER
+    VGA_FBUFF = (uint8_t *)vbe_info -> framebuffer;
     return;
 }
 

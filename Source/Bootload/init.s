@@ -12,6 +12,57 @@ KERNEL equ 0x7e00 ; Address where the kernel actually begins
 VIDEO_DESIRED equ 0x112 ; 640x480, 24bpp (Most GPU's support this implicitly.)
 SP_TOP equ 0x90000 ; Sufficiently high. If the stack reaches the code segment, something has gone very wrong.
 
+FAT_FS_SIZE equ 2 << 27 ; Size of FAT in bytes (256MB)
+
+
+jmp begin
+nop
+
+; Code for MBR of the FAT32 filesystem. (Little-endian only!!)
+; https://wiki.osdev.org/FAT
+FAT32_BPB:
+    db "MSWIN4.1" ; OEM Identifier. Mostly useless, but some drivers expect that value "MSWIN4.1"
+    dw 512 ; Bytes per sector
+    db 1 ; sectors per cluster (1)
+    dw 32 ; Reserved sector count (this seems to be a good default..?) I guess it keeps room for boot sectors
+    db 2 ; Number of file allocation tables.
+    dw 0 ; Unused (number of root directory entires)
+    dw 0 ; Number of total sectors. Usually 0 for FAT32
+    db 0xf8 ; Media type. Set to fixed disk partition (hard disk)
+    dw 0 ; Unused in FAT32
+
+    ; CHS Geometry
+    dw 63 ; Sectors per track
+    dw 255 ; Number of heads
+    dd 0 ; Hidden sectors (LBA offset)
+    dd (FAT_FS_SIZE / 512) ; 32-bit total sector count
+
+    dd (FAT_FS_SIZE / 512 / 128) - 63 ; Sectors per FAT. 512 means a 32MB volume. (Formula: SpF * 128 * 512 = VOLUME)
+    dw 0 ; Flags
+    dw 0 ; FAT version
+    dd 2 ; Root directory (First cluster)
+    dw 1 ; FSInfo sector (1)
+    dw 6 ; Backup boot sector. I'll probably keep this unused..
+    times 12 db 0 ; Reserved
+
+    db 0x80 ; Drive number
+    db 0 ; Reserved
+    db 0x29 ; Extended boot sector
+    dd 0x12345678 ; Volume serial no.
+    db "VARA FAT32!" ; 11-byte filesystem label
+    db "FAT32   " ; FS type.
+
+; Packet to use for using int 0x13 extended read, as per OSDEVER.
+DISK_ADDR_PCKT:
+    db 0x10 ; Size of packet
+    db 0 ; Reserved
+    dw 16 ; Number of sectors to transfer
+    dw 0 ; Offset of transfer buffer
+    dw KERNEL >> 4 ; Segment of transfer buffer
+    dd FAT_FS_SIZE / 512 ; Lower LBA
+    dd 0 ; Higher LBA
+
+
 %include "Source/macroasm.s"
 
 section .text
@@ -22,19 +73,20 @@ begin:
     mov ah, 0 ; Issue a disk reset here
     int 0x13
     
-    ; Start by loading 16 sectors of the inital kernel immediately after MBR. 512 x 16 = 8,192B
-    ; Load starting position
-    mov bx, 0
-    mov ax, KERNEL >> 4
-    mov es, ax
+    ; Perform an LBA extended read outside of the FAT32 FS.
+    ; Check extended LBA support
+    mov ah, 0x41
+    mov dl, 0x80
+    mov bx, 0x55aa
+    int 0x13
+    jc mbr_err ; Not supported, terminate
 
-    ; Sector 1 is MBR, >1 is kernel.
-    mov ah, 2
-    mov al, 32
-    mov ch, 0
-    mov cl, 2
-    mov dh, 0
-    mov dl, 0x80 ; "C:/ Drive"
+    ; Perform the read
+    xor ax, ax
+    mov ds, ax ; Clear DS for safety
+    mov si, DISK_ADDR_PCKT ; Set DS:DI
+    mov ah, 0x42
+    mov dl, 0x80 ; Primary drive
 
     int 0x13 ; Call interrupt for reading HDD
 
