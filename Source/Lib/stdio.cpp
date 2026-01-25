@@ -58,6 +58,14 @@ void cli() {
     asm volatile("cli");
 }
 
+void memcpy(void *dest, const void *source, uint32_t nbytes) {
+    uint8_t *d = (uint8_t *)dest; // Treat as byte pointers
+    const uint8_t *s = (const uint8_t *)source;
+    for (uint32_t i = 0; i < nbytes; i++) {
+        d[i] = s[i]; // Copy each byte
+    }
+}
+
 // For 512-byte blocks, size (is using 1GB RMA) is 2^30 / 512 / 8 ~= 262KB. SImply add that to the MEM_TRACKER offset for the first block.
 uint8_t *mem_tracker = (uint8_t *)MEM_TRACKER;
 

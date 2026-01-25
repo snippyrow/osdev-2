@@ -44,7 +44,8 @@ struct fat32_dirEntry {
 extern struct fat32_bootsector* fat32_info;
 
 // Read a file from the FAT into a buffer. max_read is the maximum number of bytes to try reading.
-int read(uint32_t descriptor, void *buffer, uint32_t max_read);
+// Return 0 if success, -1 if fail
+int read(uint32_t descriptor, uint8_t *buffer, uint32_t max_read);
 
 // Create an object in a file descriptor, either a directory or file. *file is referring to a fat32_dirEntry.
 int create(uint32_t descriptor, void *file);
@@ -53,7 +54,7 @@ int create(uint32_t descriptor, void *file);
 int remove(uint32_t descriptor, uint32_t cluster);
 
 // Write to a file (Start at first byte) from the buffer. Max_write is how many bytes we should try to read, and cluster helps find the item
-int write(uint32_t descriptor, void *buffer, uint32_t max_write, uint32_t cluster);
+int write(uint32_t descriptor, uint8_t *buffer, uint32_t max_write, uint32_t cluster);
 
 // String is exactly 11 bytes long.
 int rename(uint32_t descriptor, char *str, uint32_t cluster);

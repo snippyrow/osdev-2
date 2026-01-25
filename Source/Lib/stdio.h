@@ -27,6 +27,8 @@ void iret();
 void sti();
 void cli();
 
+void memcpy(void *dest, const void *source, uint32_t nbytes);
+
 // Allocate memory from the kernel space. When a system or user program requests memory, it is given in 512-byte chunks.
 // Variable "size_t" states how many blocks of memory are needed, and each program should manage the use internally.
 // For freeing up blocks of memory, the pointer for the block is passed back in for ease of use and it all gets cleared at once.

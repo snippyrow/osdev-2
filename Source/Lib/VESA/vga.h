@@ -57,5 +57,6 @@ extern uint16_t WIN_HEIGHT;
 extern uint8_t WIN_BPP;
 
 extern uint8_t *WIN_FBUFF;
+extern uint8_t *VGA_FBUFF;
 
 #endif // VGA_H

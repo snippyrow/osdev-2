@@ -14,9 +14,15 @@ extern "C" void kmain() {
     idt_install();
     uint8_t* fb = WIN_FBUFF;
     /* Set pixel (0,0) to red */
-    ata_init();
+    //ata_init();
     int st = ata_lba_read(5, 4, 0x100000);
-    
+    uint8_t test_buffer[512];
+    test_buffer[0] = 'e';
+    int status = read(2, VGA_FBUFF, 100);
+    ata_lba_read(32, 1, (uint32_t)VGA_FBUFF);
+    if (test_buffer[0] == 'M') {
+        a = a / 0;
+    }
 
     vga_fillrect(50, 50, 100, 100, 0x00FF0000);
 
