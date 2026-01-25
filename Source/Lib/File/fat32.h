@@ -23,8 +23,7 @@ struct fat32_bootsector {
 } __attribute__((packed));
 
 struct fat32_dirEntry {
-    char fname[8]; // Filename (padded with spaces)
-    char fext[3]; // File extension (padded with spaces)
+    char fname[11]; // Filename and extension (padded with spaces)
     uint8_t attributes; // See *
     uint8_t reserved;
     uint8_t create_time_fine; // Use 10mz units.
@@ -59,5 +58,9 @@ int write(uint32_t descriptor, uint8_t *buffer, uint32_t max_write, uint32_t clu
 // String is exactly 11 bytes long.
 int rename(uint32_t descriptor, char *str, uint32_t cluster);
 
-
+// Search for a file in a subdirectory, based off of a name. File name must be exactly 11 bytes, "NNNNNNNNEEE" format. Padded with spaces.
+// Returns the starting cluster for that file.
+// Returns 0 if not found or error
+// Files only!!
+uint32_t find(uint32_t descriptor, char *str);
 #endif

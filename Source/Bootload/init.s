@@ -56,7 +56,7 @@ FAT32_BPB:
 DISK_ADDR_PCKT:
     db 0x10 ; Size of packet
     db 0 ; Reserved
-    dw 16 ; Number of sectors to transfer
+    dw 19 ; Number of sectors to transfer
     dw 0 ; Offset of transfer buffer
     dw KERNEL >> 4 ; Segment of transfer buffer
     dd FAT_FS_SIZE / 512 ; Lower LBA
