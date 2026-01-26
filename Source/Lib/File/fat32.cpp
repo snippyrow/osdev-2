@@ -42,7 +42,7 @@ int read(uint32_t descriptor, uint8_t *buffer, uint32_t max_read) {
         }
         // Find the LBA needed to read the file from after the FAT
         uint32_t lba = (fat32_info -> reservedSectors) + (fat32_info -> fat_num * fat32_info -> sectorsPerFat) + ((cluster - fat32_info -> rootCluster) * fat32_info -> bytesPerSector);
-        int err = ata_lba_read(lba, 1, *tmp_chunk);
+        int err = ata_lba_read(lba, 1, (uint32_t)tmp_chunk);
         if (err) { // If the disk driver gives an error, terminate the read.
             return -1;
         }

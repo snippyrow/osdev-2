@@ -49,6 +49,15 @@ struct vbe_mode_info_structure {
     uint8_t reserved[206];
 } __attribute__ ((packed));
 
+struct vesa_syscall_return {
+    uint32_t *vga_buffer;
+    uint32_t *work_buffer;
+    uint8_t bpp;
+    uint16_t width;
+    uint16_t height;
+} __attribute__ ((packed));
+
+
 extern struct vbe_mode_info_structure* vbe_info;
 
 // Data will be saved here when the graphics library is started.

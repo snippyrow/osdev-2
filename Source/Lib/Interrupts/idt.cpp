@@ -1,5 +1,6 @@
 #include "idt.h"
 #include "stdio.h"
+#include "sys.h"
 
 // Single definition for structures
 struct idt_gate idt[256];
@@ -26,7 +27,7 @@ void idt_install() {
     //set_idt_gate(0,(uint32_t)div0);
     //set_idt_gate(8,(uint32_t)doublefault);
 
-    //set_idt_gate(0x80, (uint32_t)syscall_gen);
+    set_idt_gate(0x80, (uint32_t)syscall_stub);
 
     // Re-map the master & slave PIC. How does it work? 
     outb(0x20, 0x11);
@@ -48,13 +49,11 @@ void idt_install() {
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    outb(0x21, 0b11111010); // only unmask PIT, Cascade PIC and keyboard (IRQ0 and IRQ1 and IRQ2)
+    outb(0x21, 0b11111011); // only unmask PIT, Cascade PIC and keyboard (IRQ0 and IRQ1 and IRQ2)
     outb(0xA1, 0b11111111); // Only unmask PS/2 mouse
 
 
     idt_desc.base = (uint32_t) &idt;
     idt_desc.limit = 0xff * sizeof(idt_gate) - 1;
     asm volatile("lidt (%0)" : : "r" (&idt_desc));
-
-    
 }
