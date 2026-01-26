@@ -37,9 +37,6 @@ extern "C" void kmain() {
     //ata_init();
     int st = ata_lba_read(5, 4, 0x100000);
     uint8_t test_buffer[512];
-    //test_buffer[0] = 'e';
-    //int status = read(2, VGA_FBUFF, 100);
-    //ata_lba_read(32, 1, (uint32_t)VGA_FBUFF);
 
     uint32_t sector_begin = find(2, "TTY     BIN");
     if (sector_begin == 0) {
@@ -48,24 +45,16 @@ extern "C" void kmain() {
 
     // Read the file TTY.BIN
     // Request two blocks (for now)
-    //uint32_t *fbuff = kmalloc(2);
-    int read_status = read(sector_begin, (uint8_t *)0x1000000, 100);
-    //uint32_t sec2_begin = find(2, "FINDER2 TXT");
-    //read(find(2, "OSYSTEM BIN"), VGA_FBUFF, 1000); // test
+    uint32_t *fbuff = kmalloc(2);
+    int read_status = read(sector_begin, (uint8_t *)fbuff, 1024);
 
-    //if (sec2_begin == 0) {
-        //fail();
-    //}
-    //int stat = read(sec2_begin, VGA_FBUFF, 2048); // test
     if (read_status == -1) {
         fail();
     }
 
-    //ata_lba_read(8150, 1, (uint32_t)VGA_FBUFF);
-
     // Call the entry function
-    struct fat32_executable_header* f_headers = (struct fat32_executable_header*)0x1000000;
-    func_t entry = (func_t)(f_headers -> entry + 0x1000000);
+    struct fat32_executable_header* f_headers = (struct fat32_executable_header*)(uint32_t)fbuff;
+    func_t entry = (func_t)(f_headers -> entry + (uint32_t)fbuff);
     entry();
 
     vga_fillrect(50, 50, 100, 100, 0x00FF0000);

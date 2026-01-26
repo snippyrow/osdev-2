@@ -1,3 +1,5 @@
+set -o errexit # If error (non-zero return), stop.
+
 echo "Compiling.."
 CFLAGS="-ffreestanding -g -m32"
 # Compile all assembly files
@@ -28,6 +30,9 @@ i386-elf-ld -T kernel.ld -e _start -o "Temp/osystem.bin" -Ttext 0x7e00 "Temp/obj
 
 # Compile kernel-based shell program 
 nasm -felf32 "TTY/header.s" -f bin -o "Temp/tty.bin"
+# nasm -f elf32 "TTY/header.s" -o "Temp/object/tty_entry.o"
+# i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/main.cpp" -o "Temp/object/tty_fn.o"
+# i386-elf-ld -T kernel.ld -e _start -o "Temp/tty.bin" "Temp/object/tty_entry.o" "Temp/object/tty_fn.o" --oformat binary
 
 ## NEW FAT32 FS
 # Create the FAT32 image placeholder

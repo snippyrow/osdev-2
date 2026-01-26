@@ -1,3 +1,3 @@
-void main() {
+extern "C" void main() {
     return;
 }
