@@ -41,14 +41,14 @@ int read(uint32_t descriptor, uint8_t *buffer, uint32_t max_read) {
             return -1; // Bad cluster, terminate
         }
         // Find the LBA needed to read the file from after the FAT
-        uint32_t lba = (fat32_info -> reservedSectors) + (fat32_info -> fat_num * fat32_info -> sectorsPerFat) + ((cluster - fat32_info -> rootCluster) * fat32_info -> bytesPerSector);
+        uint32_t lba = (fat32_info -> reservedSectors) + (fat32_info -> fat_num * fat32_info -> sectorsPerFat) + ((cluster - fat32_info -> rootCluster) * fat32_info -> clustersPerSector);
         int err = ata_lba_read(lba, 1, (uint32_t)tmp_chunk);
         if (err) { // If the disk driver gives an error, terminate the read.
             return -1;
         }
 
         for (uint16_t i = 0; i < 512; i++) {
-            buffer[i] = tmp_chunk[i];
+            buffer[read] = tmp_chunk[i];
             read++;
             if (read >= max_read) {
                 return 0; // End if we read all the bytes required by max_read

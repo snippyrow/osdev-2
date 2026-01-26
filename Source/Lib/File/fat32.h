@@ -40,6 +40,10 @@ struct fat32_dirEntry {
 // ** Creation times: (0-4) Seconds/2 (0-29); (5-10) Minutes (0-59); (11-15) Hours (0-23)
 // *** Creation dates: (0-4) Day (1-31); (5-8) Month (1-12); (9-15) Year (0 = 1980)
 
+struct fat32_executable_header {
+    uint32_t entry;
+} __attribute__((packed));
+
 extern struct fat32_bootsector* fat32_info;
 
 // Read a file from the FAT into a buffer. max_read is the maximum number of bytes to try reading.

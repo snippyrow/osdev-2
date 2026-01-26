@@ -9,3 +9,5 @@ typedef signed short int16_t;
 typedef signed char int8_t;
 #define true 1
 #define false 0
+
+typedef void (*func_t)(void);

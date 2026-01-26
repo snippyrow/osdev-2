@@ -7,6 +7,8 @@ nasm -felf32 "Source/Bootload/init.s" -f bin -o "Temp/init.bin"
 # Compile the kernel entry as an object file (to link for C++)
 nasm -f elf32 "Source/Bootload/entry.s" -o "Temp/object/entry.o"
 
+# Add compiler to PATH: export PATH="/usr/local/i386elfgcc/bin:$PATH"
+
 # Compile all library/source files, make them into object files for linking.
 find Source -type f -name "*.cpp" | while IFS= read -r file; do
     name=$(basename "$file" .cpp)
@@ -24,19 +26,8 @@ echo $OBJS
 # Not-so fun quirk: entry.o MUST be first, so filter it out in the object list and manually link it first.
 i386-elf-ld -T kernel.ld -e _start -o "Temp/osystem.bin" -Ttext 0x7e00 "Temp/object/entry.o" $OBJS --oformat binary
 
-# Append the MBR, compiled system and leading zeroes
-# "main.img" is the final product of the build process.
-# dd if=Temp/init.bin of=main.img bs=512 count=63
-# dd if=Temp/osystem.bin of=main.img bs=512 seek=1
-
-# Attach font to sector 100. In the future, create a filesystem, make file I/O and put it into a bin.
-# dd if=Assets/font.bin of=main.img bs=512 seek=100
-
-# Append zeroes to prevent read errors from BIOS
-# dd if=/dev/zero bs=1 count=200000 >> main.img
-
-# Add compiler to PATH: export PATH="/usr/local/i386elfgcc/bin:$PATH"
-
+# Compile kernel-based shell program 
+nasm -felf32 "TTY/header.s" -f bin -o "Temp/tty.bin"
 
 ## NEW FAT32 FS
 # Create the FAT32 image placeholder
@@ -54,6 +45,9 @@ cat Temp/osystem.bin >> myfat32.img
 dd if=/dev/zero bs=1 count=200000 >> myfat32.img
 # Truncate to a multiple of 512 (within one sector)
 truncate -s %512 myfat32.img
+
+# Quickly copy the shell program into the root directory
+sudo cp Temp/tty.bin /mnt/osdev-fat32
 
 # mount filesystem if not done: sudo mount -o loop myfat32.img /mnt/osdev-fat32
 #sudo cp Temp/osystem.bin /mnt/osdev-fat32
