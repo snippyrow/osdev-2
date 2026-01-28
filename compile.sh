@@ -1,8 +1,11 @@
 set -o errexit # If error (non-zero return), stop.
 
 echo "Compiling.."
-CFLAGS="-ffreestanding -g -m32"
+CFLAGS="-ffreestanding -g -m32 -mregparm=3"
 # Compile all assembly files
+
+# Clear out old object files
+rm -f ./Temp/object/*.o
 
 # Bootloader goes separate
 nasm -felf32 "Source/Bootload/init.s" -f bin -o "Temp/init.bin"
@@ -28,11 +31,17 @@ echo $OBJS
 # Not-so fun quirk: entry.o MUST be first, so filter it out in the object list and manually link it first.
 i386-elf-ld -T kernel.ld -e _start -o "Temp/osystem.bin" -Ttext 0x7e00 "Temp/object/entry.o" $OBJS --oformat binary
 
-# Compile kernel-based shell program 
-nasm -felf32 "TTY/header.s" -f bin -o "Temp/tty.bin"
+
+
+# Compile kernel-based shell programs
+# nasm -felf32 "TTY/header.s" -f bin -o "Temp/tty.bin"
 # nasm -f elf32 "TTY/header.s" -o "Temp/object/tty_entry.o"
-# i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/main.cpp" -o "Temp/object/tty_fn.o"
-# i386-elf-ld -T kernel.ld -e _start -o "Temp/tty.bin" "Temp/object/tty_entry.o" "Temp/object/tty_fn.o" --oformat binary
+i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/shell.cpp" -o "Temp/object/tty_fn.o"
+i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/sys.cpp" -o "Temp/object/tty_sys.o"
+i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/vga.cpp" -o "Temp/object/tty_vga.o"
+i386-elf-ld -T kernel.ld -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" --oformat binary
+
+
 
 ## NEW FAT32 FS
 # Create the FAT32 image placeholder

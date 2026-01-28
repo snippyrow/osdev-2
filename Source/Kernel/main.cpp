@@ -9,22 +9,6 @@
 
 uint8_t a = 0;
 
-uint32_t syscall3(uint32_t sysno, uint32_t a0, uint32_t a1, uint32_t a2) {
-    uint32_t ret;
-
-    __asm__ volatile (
-        "int $0x80"
-        : "=a"(ret)                 // return value from EAX
-        : "a"(sysno),               // EAX
-          "b"(a0),                  // EBX
-          "c"(a1),                  // ECX
-          "d"(a2)                   // EDX
-        : "memory"
-    );
-
-    return ret;
-}
-
 void fail() {
     a = a / 0;
 }
@@ -54,7 +38,7 @@ extern "C" void kmain() {
 
     // Call the entry function
     struct fat32_executable_header* f_headers = (struct fat32_executable_header*)(uint32_t)fbuff;
-    func_t entry = (func_t)(f_headers -> entry + (uint32_t)fbuff);
+    func_t entry = (func_t)((uint32_t)fbuff);
     entry();
 
     vga_fillrect(50, 50, 100, 100, 0x00FF0000);

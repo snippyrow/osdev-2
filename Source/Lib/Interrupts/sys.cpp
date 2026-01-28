@@ -14,14 +14,13 @@ struct interrupt_frame {
 uint8_t test = 0;
 // Generic system call function.
 // When 0x80 is invoked by a program, it goes here.
-void syscall_stub(interrupt_frame_t *frame) {
-    uint32_t sysno = frame -> eax; // Syscall interrupt number is stored in EAX.
-    uint32_t a0 = frame -> ebx; // First arg
-    uint32_t a1 = frame -> ecx; // Second arg
-    uint32_t a2 = frame -> edx; // Third arg
+uint32_t syscall_stub(uint32_t sysno, uint32_t a0, uint32_t a1, uint32_t a2) {
+    //uint32_t sysno = frame -> eax; // Syscall interrupt number is stored in EAX.
+    //uint32_t a0 = frame -> ebx; // First arg
+    //uint32_t a1 = frame -> ecx; // Second arg
+    //uint32_t a2 = frame -> edx; // Third arg
 
     uint32_t ret = 0;
-
     // Switch between different system calls.
     // 0x00: NOP
     // 0x16: Get Display information. Returns a pointer to a struct with the VGA Buffer, work buffer, size etc. Must be free'd at the end of the program.
@@ -50,23 +49,29 @@ void syscall_stub(interrupt_frame_t *frame) {
             
             // Allocate an area of suitable size.
             // FUTURE: REPLACE "1" WITH SUITABLE MATH!!
-            uint32_t *rawptr = kmalloc(1);
-            struct vesa_syscall_return *vesa_return = (struct vesa_syscall_return *)(uint32_t)(rawptr);
+            struct vesa_syscall_return tmp = {
+                .vga_buffer  = (uint32_t)VGA_FBUFF,
+                .work_buffer = (uint32_t)WIN_FBUFF,
+                .bpp         = WIN_BPP,
+                .width       = WIN_WIDTH,
+                .height      = WIN_HEIGHT,
+            };
 
-            vesa_return -> vga_buffer = (uint32_t*)VGA_FBUFF;
-            vesa_return -> work_buffer = (uint32_t*)WIN_FBUFF;
-            vesa_return -> bpp = WIN_BPP;
-            vesa_return -> width = WIN_WIDTH;
-            vesa_return -> height = WIN_HEIGHT;
+            // Copy to user-defined area of memory.
+            memcpy((uint8_t *)a0, &tmp, sizeof(tmp));
 
-            ret = (uint32_t)rawptr;
+            ret = (uint32_t)VGA_FBUFF;
 
             break;
         }
+        case 0x17:
+            vga_fillrect(150, 150, 100, 100, 0x00FFFF00);
+
+            break;
 
         default:
             break;
     }
-    frame -> eax = ret;  // return value
-    return;
+    //frame -> eax = ret;  // return value
+    return ret;
 }

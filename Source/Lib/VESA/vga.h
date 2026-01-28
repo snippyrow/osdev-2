@@ -50,8 +50,8 @@ struct vbe_mode_info_structure {
 } __attribute__ ((packed));
 
 struct vesa_syscall_return {
-    uint32_t *vga_buffer;
-    uint32_t *work_buffer;
+    uint32_t vga_buffer;
+    uint32_t work_buffer;
     uint8_t bpp;
     uint16_t width;
     uint16_t height;
