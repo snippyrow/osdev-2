@@ -67,37 +67,51 @@ void memcpy(void *dest, const void *source, uint32_t nbytes) {
 }
 
 // For 512-byte blocks, size (is using 1GB RMA) is 2^30 / 512 / 8 ~= 262KB. SImply add that to the MEM_TRACKER offset for the first block.
-uint8_t *mem_tracker = (uint8_t *)MEM_TRACKER;
+
+uint8_t mem_tracker[TABLE_SIZE];
 
 // Return a 32-bit pointer
 // Size_t is the number of blocks we need.
 uint32_t* kmalloc(uint32_t size_t) {
+    if (size_t == 0) {
+        return (uint32_t*)0; // Bad argument
+    }
     // When allocating, go up each byte sequentially.
     uint32_t counted = 0;
-    uint32_t* ptr_begin = 0;
-    for (uint32_t byte = 0; byte<TABLE_SIZE; byte++) {
-        for (uint8_t bit_index = 0; bit_index < 8; bit_index++) {
-            unsigned bit = (mem_tracker[byte] >> bit_index) & 1u; // Produce a 1 or 0
-            if (!bit) { // If unused
-                if (counted == 0) {
-                    ptr_begin = (uint32_t*)(MEM_TRACKER + TABLE_SIZE + (byte * MEM_BLOCK_SIZE * 8) + (bit_index * MEM_BLOCK_SIZE)); // Declare the start of the pointer
-                }
-                counted++; // Increment
-                if (counted == size_t) { // Found a continuous string that's long enough.
-                    // Mark as allocated.
-                    uint32_t start_bit = byte * 8 + bit_index - (size_t - 1);
+    uint32_t bit_start = 0;
 
-                    for (uint32_t i = 0; i < size_t; i++) {
-                        uint32_t b = start_bit + i;
-                        mem_tracker[b / 8] |= (1u << (b % 8));
-                    }
-
-                    return ptr_begin;
-                }
-            } else {
-                counted = 0; // Reset counter of found blocks if the stream gets interrupted
+    for (uint32_t bit = 0; bit < TABLE_SIZE; bit++) {
+        if ((mem_tracker[bit >> 3] & (1u << (bit & 7))) == 0) {
+            // Found a free block?
+            if (counted == 0) {
+                bit_start = bit;
             }
+
+            counted++;
+            if (counted == size_t) { // Done, begin allocation
+                for (uint32_t i = 0; i < size_t; i++) {
+                    uint32_t b = bit_start + i;
+                    mem_tracker[b >> 3] |= (1u << (b & 7));
+                }
+                // Return pointer
+                return (uint32_t*)((uint8_t*)mem_tracker + TABLE_SIZE + bit_start * MEM_BLOCK_SIZE);
+            }
+        } else {
+            counted = 0;
         }
     }
-    return 0; // Out of memory.
+    
+    return (uint32_t*)0; // Out of memory.
+}
+
+void kfree(void* ptr, uint32_t size_t) {
+    if (!ptr || size_t == 0) {
+        return;
+    }
+    uint32_t start = ((uint8_t*)ptr - (uint8_t*)mem_tracker + TABLE_SIZE) / MEM_BLOCK_SIZE;
+
+    for (uint32_t i = 0; i < size_t; i++) {
+        uint32_t b = start + i;
+        mem_tracker[b >> 3] &= ~(1u << (b & 7));
+    }
 }

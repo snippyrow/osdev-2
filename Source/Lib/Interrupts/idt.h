@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+extern "C" uint32_t isr80_stub();
+
 // Define an IDT gate. When loaded into the IDT at a specific index, the processor will use this gate to figure out what to do.
 // Selector should be 0x8 for CODE, and the address is packed into low and high ends. ONLY WORKS FOR 32-BIT PMODE!!
 typedef struct idt_gate {

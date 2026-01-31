@@ -27,7 +27,7 @@ void idt_install() {
     //set_idt_gate(0,(uint32_t)div0);
     //set_idt_gate(8,(uint32_t)doublefault);
 
-    set_idt_gate(0x80, (uint32_t)syscall_stub);
+    set_idt_gate(0x80, (uint32_t)isr80_stub);
 
     // Re-map the master & slave PIC. How does it work? 
     outb(0x20, 0x11);

@@ -8,9 +8,11 @@
 #define NULL ((void*)0)
 typedef void (*fn_ptr)();
 
-#define MEM_TRACKER 0x100000 // Address to store the table which contains memory block (malloc) tracking
 #define MEM_BLOCK_SIZE 512 // Size of allocated memory blocks in bytes
-#define TABLE_SIZE (2^30) / MEM_BLOCK_SIZE / 8 // Length in bytes for faster compiling
+#define BLOCK_NUM 256 // Number of blocks to use
+#define TABLE_SIZE (BLOCK_NUM * 8) // Length in bytes for faster compiling
+
+extern uint8_t mem_tracker[TABLE_SIZE]; // Bitmap
 
 void outb(uint16_t port, uint8_t value);
 void outw(uint16_t port, uint16_t value);
@@ -36,8 +38,5 @@ void memcpy(void *dest, const void *source, uint32_t nbytes);
 
 // Alternatively, another mode could be configured to manually set kernel block size.
 uint32_t* kmalloc(uint32_t size_t);
-
-// Declare table for blocks (Each byte tracks eight blocks)
-extern uint8_t *mem_tracker;
 
 #endif

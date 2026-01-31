@@ -1,7 +1,7 @@
 set -o errexit # If error (non-zero return), stop.
 
 echo "Compiling.."
-CFLAGS="-ffreestanding -g -m32 -mregparm=3"
+CFLAGS="-ffreestanding -g -m32"
 # Compile all assembly files
 
 # Clear out old object files
@@ -18,6 +18,12 @@ nasm -f elf32 "Source/Bootload/entry.s" -o "Temp/object/entry.o"
 find Source -type f -name "*.cpp" | while IFS= read -r file; do
     name=$(basename "$file" .cpp)
     i386-elf-gcc -I ./Source/Lib $CFLAGS -c "$file" -o "Temp/object/$name.o"
+done
+
+# Also compile some x86 asm
+find Source/Kernel -type f -name "*.s" | while IFS= read -r file; do
+    name=$(basename "$file" .cpp)
+    nasm -f elf32 "$file" -o "Temp/object/$name.o"
 done
 
 # Find all object files
@@ -39,7 +45,8 @@ i386-elf-ld -T kernel.ld -e _start -o "Temp/osystem.bin" -Ttext 0x7e00 "Temp/obj
 i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/shell.cpp" -o "Temp/object/tty_fn.o"
 i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/sys.cpp" -o "Temp/object/tty_sys.o"
 i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/vga.cpp" -o "Temp/object/tty_vga.o"
-i386-elf-ld -T kernel.ld -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" --oformat binary
+nasm -f elf32 "TTY/Lib/sys.s" -o "Temp/object/tty_asm.o"
+i386-elf-ld -T kernel.ld -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" "Temp/object/tty_asm.o" --oformat binary
 
 
 
@@ -60,12 +67,16 @@ dd if=/dev/zero bs=1 count=200000 >> myfat32.img
 # Truncate to a multiple of 512 (within one sector)
 truncate -s %512 myfat32.img
 
-# Quickly copy the shell program into the root directory
+# Quickly copy shell program and dependancies into the root directory
 sudo cp Temp/tty.bin /mnt/osdev-fat32
+sudo cp Assets/font.bin /mnt/osdev-fat32
 
 # mount filesystem if not done: sudo mount -o loop myfat32.img /mnt/osdev-fat32
+# sudo mount -o remount,rw /mnt/osdev-fat32 to fix it
 #sudo cp Temp/osystem.bin /mnt/osdev-fat32
 
 # To run it as qemu, use qemu-system-x86_64 -enable-kvm -drive file=myfat32.img
 
 # To convert the raw image to a *.vdi, use VBoxManage convertfromraw myfat32.img myfat32.vdi --format VDI
+
+# qemu-system-x86_64 -enable-kvm -drive format=raw,file=myfat32.img,if=ide
