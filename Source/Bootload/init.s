@@ -32,8 +32,8 @@ FAT32_BPB:
     dw 0 ; Unused in FAT32
 
     ; CHS Geometry
-    dw 63 ; Sectors per track
-    dw 255 ; Number of heads
+    dw 32 ; Sectors per track
+    dw 16 ; Number of heads
     dd 0 ; Hidden sectors (LBA offset)
     dd (FAT_FS_SIZE / 512) ; 32-bit total sector count
 
@@ -56,7 +56,7 @@ FAT32_BPB:
 DISK_ADDR_PCKT:
     db 0x10 ; Size of packet
     db 0 ; Reserved
-    dw 19 ; Number of sectors to transfer
+    dw 50 ; Number of sectors to transfer
     dw 0 ; Offset of transfer buffer
     dw KERNEL >> 4 ; Segment of transfer buffer
     dd FAT_FS_SIZE / 512 ; Lower LBA

@@ -80,7 +80,7 @@ uint32_t* kmalloc(uint32_t size_t) {
     uint32_t counted = 0;
     uint32_t bit_start = 0;
 
-    for (uint32_t bit = 0; bit < TABLE_SIZE; bit++) {
+    for (uint32_t bit = 0; bit < (BLOCK_NUM * 8); bit++) {
         if ((mem_tracker[bit >> 3] & (1u << (bit & 7))) == 0) {
             // Found a free block?
             if (counted == 0) {
@@ -94,10 +94,11 @@ uint32_t* kmalloc(uint32_t size_t) {
                     mem_tracker[b >> 3] |= (1u << (b & 7));
                 }
                 // Return pointer
-                return (uint32_t*)((uint8_t*)mem_tracker + TABLE_SIZE + bit_start * MEM_BLOCK_SIZE);
+                return (uint32_t*)(HEAP_START + bit_start * MEM_BLOCK_SIZE);
             }
         } else {
             counted = 0;
+            bit_start = 0;
         }
     }
     
@@ -108,7 +109,8 @@ void kfree(void* ptr, uint32_t size_t) {
     if (!ptr || size_t == 0) {
         return;
     }
-    uint32_t start = ((uint8_t*)ptr - (uint8_t*)mem_tracker + TABLE_SIZE) / MEM_BLOCK_SIZE;
+    // Check MEM_RES_BUFFER if something went wrong!
+    uint32_t start = ((uint8_t*)ptr - (uint8_t*)mem_tracker + TABLE_SIZE - HEAP_START) / MEM_BLOCK_SIZE;
 
     for (uint32_t i = 0; i < size_t; i++) {
         uint32_t b = start + i;

@@ -9,8 +9,10 @@
 typedef void (*fn_ptr)();
 
 #define MEM_BLOCK_SIZE 512 // Size of allocated memory blocks in bytes
-#define BLOCK_NUM 256 // Number of blocks to use
-#define TABLE_SIZE (BLOCK_NUM * 8) // Length in bytes for faster compiling
+#define BLOCK_NUM 8192 // Number of blocks to use
+#define TABLE_SIZE (BLOCK_NUM / 8) // Length in bytes for faster compiling
+
+#define HEAP_START 0x1000000
 
 extern uint8_t mem_tracker[TABLE_SIZE]; // Bitmap
 

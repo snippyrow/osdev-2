@@ -19,9 +19,9 @@ void vga_fillrect(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint32_t col
     for (uint16_t py = y; py < y + sy; py++) {
         for (uint16_t px = x; px < x + sx; px++) {
             uint32_t offset = (py * WIN_WIDTH + px) * 3;
-            WIN_FBUFF[offset + 0] = b;
-            WIN_FBUFF[offset + 1] = g;
-            WIN_FBUFF[offset + 2] = r;
+            //WIN_FBUFF[offset + 0] = b;
+            //WIN_FBUFF[offset + 1] = g;
+            //WIN_FBUFF[offset + 2] = r;
 
             if (mirror) {
                 VGA_FBUFF[offset + 0] = b;
@@ -44,9 +44,9 @@ void vga_init() {
     WIN_BPP = vbe_info -> bpp;
     // Do some math. Each block is 512 bytes, round up. BPP is usually 24, so divide by eight to get bytes per pixel.
     // If using monochrome (one bit per pixel) some floating math is used.
-    uint32_t buffer_blocks = (WIN_WIDTH * WIN_HEIGHT) * (WIN_BPP / 8.0f) / 512;
+    uint32_t buffer_blocks = (WIN_WIDTH * WIN_HEIGHT) * (WIN_BPP / 8) / 512 / 512; // FIX LATER!!!!!!!!!!1
     uint32_t* buffer = kmalloc(buffer_blocks);
-    WIN_FBUFF = (uint8_t *)buffer;
+    //WIN_FBUFF = (uint8_t *)0x1000000;
     VGA_FBUFF = (uint8_t *)vbe_info -> framebuffer;
     return;
 }

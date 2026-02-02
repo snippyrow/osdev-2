@@ -1,6 +1,10 @@
 [bits 32]
 [global isr80_stub]
+[global kbd_int_stub]
 [extern syscall_handle]
+[extern kbd_int_handle]
+
+; Interrupt code, since it's often easier to use some minimal seembly wrappers for them.
 
 isr80_stub:
     ; CPU pushed: eflags, cs, eip  (12 bytes)
@@ -19,4 +23,14 @@ isr80_stub:
     call syscall_handle
     add esp, 20 ; Remove everything
 
+    iret
+
+kbd_int_stub:
+    pusha
+
+    call kbd_int_handle
+
+    mov al, 0x20
+    out 0x20, al
+    popa
     iret

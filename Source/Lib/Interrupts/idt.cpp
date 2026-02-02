@@ -1,6 +1,7 @@
 #include "idt.h"
-#include "stdio.h"
 #include "sys.h"
+#include "stdio.h"
+#include "stdint.h"
 
 // Single definition for structures
 struct idt_gate idt[256];
@@ -21,13 +22,45 @@ void set_idt_gate(uint8_t gate, uint32_t hook) {
     idt[gate].always0 = 0;
 }
 
+// Keyboard interrupt handler. Loop though all functions in the table, as demanded by certain programs.
+// Each function should take one uint16_t for a chacter (and control stuff) and return as VOID, before terminating the interrupt.
+// Allow 256 functions to be used.
+
+// List of all functions that allow programs to receive events
+uint32_t *kbd_hooks[256] = {0};
+
+void kbd_int_handle() {
+    uint8_t scancode = inb(0x60);
+    uint16_t code = x86_keycodes[scancode]; // Map to a real scancode
+    if (!code) return;
+    for (uint16_t j = 0; j < 256; j++) {
+        if (!(uint32_t)kbd_hooks[j]) continue;
+        ((func_in_t)(kbd_hooks[j]))(code); // Call function if it does exist
+    }
+    return;
+}
+
+// Connect code to the keyboard handler in order to receive events
+// Return -1 if error, anything else is the index used for de-registering the handler.
+int kbd_int_connect(uint32_t *function_ptr) {
+    for (uint8_t j = 0; j < 256; j++) {
+        // Check if the space is unoccupied by anything else.
+        if ((uint32_t)kbd_hooks[j]) continue;
+        kbd_hooks[j] = function_ptr;
+        return j;
+    }
+    return -1;
+}
+
 // Add required fields
 void idt_install() {
 
     //set_idt_gate(0,(uint32_t)div0);
     //set_idt_gate(8,(uint32_t)doublefault);
 
+    // https://wiki.osdev.org/Interrupts
     set_idt_gate(0x80, (uint32_t)isr80_stub);
+    set_idt_gate(33, (uint32_t)kbd_int_stub);
 
     // Re-map the master & slave PIC. How does it work? 
     outb(0x20, 0x11);
@@ -49,7 +82,7 @@ void idt_install() {
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    outb(0x21, 0b11111011); // only unmask PIT, Cascade PIC and keyboard (IRQ0 and IRQ1 and IRQ2)
+    outb(0x21, 0b11111001); // only unmask PIT, Cascade PIC and keyboard (IRQ0 and IRQ1 and IRQ2)
     outb(0xA1, 0b11111111); // Only unmask PS/2 mouse
 
 

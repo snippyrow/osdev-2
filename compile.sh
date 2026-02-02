@@ -1,8 +1,9 @@
 set -o errexit # If error (non-zero return), stop.
 
 echo "Compiling.."
-CFLAGS="-ffreestanding -g -m32"
+CFLAGS="-ffreestanding -g -m32 -mgeneral-regs-only"
 # Compile all assembly files
+# Keeping only general regs allows for C-based interrupt handlers (no asm mixing)
 
 # Clear out old object files
 rm -f ./Temp/object/*.o
@@ -55,14 +56,14 @@ i386-elf-ld -T kernel.ld -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Tem
 dd if=/dev/zero of=myfat32.img bs=1M count=256 status=progress
 
 # Format to FAT32
-sudo mkfs.fat -F 32 -n "MYDISK" myfat32.img
+sudo mkfs.fat -v -F 32 -n "MYDISK" -s 1 -f 2 myfat32.img
 # Replace the first 512 bytes of the newly generated image with the compiled MBR
 # MBR already contains all the necessary FAT32 stuff.
 dd if=Temp/init.bin of=myfat32.img bs=1 count=512 conv=notrunc
 # Append the second-stage kernel *outside* of the FAT32 FS. Lightweight option.
 cat Temp/osystem.bin >> myfat32.img
 
-# Append some zeroes at the end to prevent the BIOSfrom throwing errors.
+# Append some zeroes at the end to prevent the BIOS from throwing errors.
 dd if=/dev/zero bs=1 count=200000 >> myfat32.img
 # Truncate to a multiple of 512 (within one sector)
 truncate -s %512 myfat32.img
@@ -70,6 +71,7 @@ truncate -s %512 myfat32.img
 # Quickly copy shell program and dependancies into the root directory
 sudo cp Temp/tty.bin /mnt/osdev-fat32
 sudo cp Assets/font.bin /mnt/osdev-fat32
+sudo cp Assets/Birds.bmp /mnt/osdev-fat32
 
 # mount filesystem if not done: sudo mount -o loop myfat32.img /mnt/osdev-fat32
 # sudo mount -o remount,rw /mnt/osdev-fat32 to fix it
