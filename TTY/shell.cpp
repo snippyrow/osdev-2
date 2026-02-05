@@ -8,6 +8,8 @@ Includes options for running some basic utility commands, as well as support for
 */
 
 uint8_t *font_ptr; // Pointer to load file into
+char *scancode_map_ptr;
+char *shell_cache_memory;
 
 extern "C" void _start() {
     const char FONTNM[12] = "FONT    BIN";
@@ -54,17 +56,32 @@ extern "C" void _start() {
     font_ptr = (uint8_t*)malloc((font_size / 512) + 1);
     fat32_fs_read(file_desc, font_ptr, font_size);
 
+    // Allocate a spot for a shell
+    shell_cache_memory = (char*)malloc(1);
+    scancode_map_ptr = (char *)keymap;
+
+    // Clear the screen to black before beginning
+    for (uint16_t x = 0; x < kernel_video.width * 3; x++) {
+        for (uint16_t y = 0; y < kernel_video.height; y++) {
+            vga_buffer[x + (y * kernel_video.width * 3)] = 0x00;
+        }
+    }
+
     // Hook keyboard
     k_call(0x20, (uint32_t)kbd_test, 0, 0);
 
-    
+    // Fast screen clear
+    screen_set_bw(0);
+
+    // Print splash & place first cursor
+    tty_println("Welcome to the kernel!\n\rI have nothing else to say.\n\r");
 
     // Try to draw something
     for (uint32_t i = 0; i < (kernel_video.width * 10 * 3); i++) {
-        vga_buffer[i + (kernel_video.width * 10 * 3)] = i % 256;
+        //vga_buffer[i + (kernel_video.width * 10 * 3)] = i % 256;
     }
 
-
+    for (;;);
 
     return;
 }

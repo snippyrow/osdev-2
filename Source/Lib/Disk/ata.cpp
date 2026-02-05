@@ -44,14 +44,14 @@ int ata_lba_read(uint32_t lba_start, uint32_t sector_cnt, uint32_t buffer) {
     outb(base + ATA_REG_COMMAND, 0x20); // READ SECTORS
 
     // Wait for drive to acknowledge command
-    ata_io_wait();
+    //ata_io_wait();
 
     // Now read sector_count × 256 words (512 bytes)
     uint16_t* ptr = (uint16_t*)buffer;
     for (uint32_t i = 0; i < sector_cnt; i++) {
         // Wait for DRQ to be ready before trying to read each sector.
         while (!(inb(base + ATA_REG_COMMAND) & ATA_SR_DRQ));
-        ata_io_wait();
+        //ata_io_wait();
 
         // Check for errors before reading
         uint8_t status = inb(base + ATA_REG_COMMAND);

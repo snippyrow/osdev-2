@@ -32,10 +32,11 @@ kbd_hook_t kbd_hooks[256] = {0};
 void kbd_int_handle() {
     uint8_t scancode = inb(0x60);
     uint16_t code = x86_keycodes[scancode]; // Map to a real scancode
+    // These codes seem to break the shift keys, keep them unused for now.
     if (!code) return;
     for (uint16_t j = 0; j < 256; j++) {
         if ((uint32_t)kbd_hooks[j] == 0) continue;
-        kbd_hooks[j](code); // Call function if it does exist
+        kbd_hooks[j](scancode); // Call function if it does exist
     }
     return;
 }

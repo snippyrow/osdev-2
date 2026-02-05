@@ -10,7 +10,15 @@ uint32_t malloc(uint32_t num_blocks);
 
 extern "C" uint32_t k_call(uint32_t sysno, uint32_t a0 = 0, uint32_t a1 = 0, uint32_t a2 = 0);
 
-void fail();
+// Memory for anything typed into the prompt by a user before entering.
+extern char *shell_cache_memory;
+
+extern uint16_t cur_x;
+extern uint16_t cur_y;
+
+// This links to the pointer for the keymap we want to use. When pressing shift, it moves.
+// Not working any different, just more scale-able and branchless. Defined at start.
+extern char *scancode_map_ptr;
 
 void kbd_test(uint16_t scancode);
 

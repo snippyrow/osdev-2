@@ -10,7 +10,7 @@ MODE_INFO equ 0x6200 ; Info about the specific mode we're using
 KERNEL equ 0x7e00 ; Address where the kernel actually begins
 
 VIDEO_DESIRED equ 0x112 ; 640x480, 24bpp (Most GPU's support this implicitly.)
-SP_TOP equ 0x100000 ; Sufficiently high. If the stack reaches the code segment, something has gone very wrong.
+SP_TOP equ 0x90000 ; Sufficiently high. If the stack reaches the code segment, something has gone very wrong.
 
 FAT_FS_SIZE equ 2 << 27 ; Size of FAT in bytes (256MB)
 
@@ -190,7 +190,6 @@ submit_v_mode:
     ; Transition to 32-bit protected mode by asserting cr0 bit 1
     mov eax, cr0
     or eax, 1
-    and eax, 0x7FFFFFFF ; Disable paging
     mov cr0, eax
 
     ; Long-jump to the start of the kernel.

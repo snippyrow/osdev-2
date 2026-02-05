@@ -1,7 +1,8 @@
 set -o errexit # If error (non-zero return), stop.
 
 echo "Compiling.."
-CFLAGS="-ffreestanding -g -m32 -mgeneral-regs-only -fno-stack-protector"
+CFLAGS_K="-ffreestanding -g -m32 -O3"
+CFLAGS_P="-ffreestanding -g -m32"
 # Compile all assembly files
 # Keeping only general regs allows for C-based interrupt handlers (no asm mixing)
 
@@ -21,7 +22,7 @@ nasm -f elf32 "Source/Bootload/entry.s" -o "Temp/object/entry.o"
 # Compile all library/source files, make them into object files for linking.
 find Source -type f -name "*.cpp" | while IFS= read -r file; do
     name=$(basename "$file" .cpp)
-    i386-elf-gcc -I ./Source/Lib $CFLAGS -c "$file" -o "Temp/object/$name.o"
+    i386-elf-gcc -I ./Source/Lib $CFLAGS_K -c "$file" -o "Temp/object/$name.o"
 done
 
 # Also compile some x86 asm
@@ -46,9 +47,9 @@ i386-elf-ld -T kernel.ld -e _start -o "Temp/osystem.bin" -Ttext 0x7e00 "Temp/obj
 # Compile kernel-based shell programs
 # nasm -felf32 "TTY/header.s" -f bin -o "Temp/tty.bin"
 # nasm -f elf32 "TTY/header.s" -o "Temp/object/tty_entry.o"
-i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/shell.cpp" -o "Temp/object/tty_fn.o"
-i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/sys.cpp" -o "Temp/object/tty_sys.o"
-i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/vga.cpp" -o "Temp/object/tty_vga.o"
+i386-elf-gcc -I ./TTY/Lib $CFLAGS_P -c "TTY/shell.cpp" -o "Temp/object/tty_fn.o"
+i386-elf-gcc -I ./TTY/Lib $CFLAGS_P -c "TTY/Lib/sys.cpp" -o "Temp/object/tty_sys.o"
+i386-elf-gcc -I ./TTY/Lib $CFLAGS_P -c "TTY/Lib/vga.cpp" -o "Temp/object/tty_vga.o"
 nasm -f elf32 "TTY/Lib/sys.s" -o "Temp/object/tty_asm.o"
 i386-elf-ld -Ttext 0x300000 -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" "Temp/object/tty_asm.o" --oformat binary
 
