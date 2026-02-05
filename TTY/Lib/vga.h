@@ -15,4 +15,6 @@ struct vesa_syscall_return {
 
 void vga_fetch();
 
+void putchar(char c, uint16_t x, uint16_t y, uint32_t color);
+
 #endif

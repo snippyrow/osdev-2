@@ -27,26 +27,27 @@ void set_idt_gate(uint8_t gate, uint32_t hook) {
 // Allow 256 functions to be used.
 
 // List of all functions that allow programs to receive events
-uint32_t *kbd_hooks[256] = {0};
+kbd_hook_t kbd_hooks[256] = {0};
 
 void kbd_int_handle() {
     uint8_t scancode = inb(0x60);
     uint16_t code = x86_keycodes[scancode]; // Map to a real scancode
     if (!code) return;
     for (uint16_t j = 0; j < 256; j++) {
-        if (!(uint32_t)kbd_hooks[j]) continue;
-        ((func_in_t)(kbd_hooks[j]))(code); // Call function if it does exist
+        if ((uint32_t)kbd_hooks[j] == 0) continue;
+        kbd_hooks[j](code); // Call function if it does exist
     }
     return;
 }
 
 // Connect code to the keyboard handler in order to receive events
 // Return -1 if error, anything else is the index used for de-registering the handler.
-int kbd_int_connect(uint32_t *function_ptr) {
+int kbd_int_connect(uint32_t function_ptr) {
+    kbd_hook_t fn = (kbd_hook_t)(void *)function_ptr;
     for (uint8_t j = 0; j < 256; j++) {
         // Check if the space is unoccupied by anything else.
-        if ((uint32_t)kbd_hooks[j]) continue;
-        kbd_hooks[j] = function_ptr;
+        if (kbd_hooks[j]) continue;
+        kbd_hooks[j] = fn;
         return j;
     }
     return -1;

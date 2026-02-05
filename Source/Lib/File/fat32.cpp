@@ -82,6 +82,8 @@ uint32_t find(uint32_t descriptor, char *str) {
         }
 
         for (uint8_t i = 0; i < 16; i++) {
+            // Check if end of directory
+            if (tmp_chunk[i].fname[0] == 0) return 0; // If end of directroy, terminate.
             // First check if the thing is a file. Then check if the strings match.
             uint8_t strmatch = 0; // If both strings match all the way through, strmatch should be equal to 0
             for (uint8_t j = 0; j < 11; j++) {

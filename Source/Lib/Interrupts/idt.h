@@ -10,9 +10,9 @@ extern "C" void kbd_int_stub();
 extern "C" void kbd_int_handle();
 
 // Serves to go into arrays for keyboard/mice/other input devices. Take a single word as an argument.
-typedef void (*func_in_t)(uint16_t c);
+typedef void (*kbd_hook_t)(uint16_t scancode);
 
-int kbd_int_connect(uint32_t *function_ptr);
+int kbd_int_connect(uint32_t function_ptr);
 
 // Define an IDT gate. When loaded into the IDT at a specific index, the processor will use this gate to figure out what to do.
 // Selector should be 0x8 for CODE, and the address is packed into low and high ends. ONLY WORKS FOR 32-BIT PMODE!!

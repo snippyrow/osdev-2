@@ -1,5 +1,6 @@
 #include "stdint.h"
 #include "sys.h"
+#include "vga.h"
 
 uint8_t a = 0;
 
@@ -16,6 +17,19 @@ int fat32_fs_read(uint32_t descriptor, uint8_t *buffer, uint32_t max_read) {
 }
 
 uint32_t malloc(uint32_t num_blocks) {
-    uint32_t ptr_ret = k_call(0x1a, num_blocks, 0, 0);
+    uint32_t ptr_ret = k_call(0x1a, num_blocks, 0, 0);;
     return ptr_ret;
+}
+
+uint16_t cur_x = 0;
+uint16_t cur_y = 0;
+
+void kbd_test(uint16_t scancode) {
+    putchar(keymap[scancode], cur_x * 8, cur_y * 16, 0);
+    cur_x++;
+    if (cur_x > kernel_video.width / 8) {
+        cur_x = 0;
+        cur_y++;
+    }
+    return;
 }

@@ -1,4 +1,5 @@
 #include "sys.h"
+#include "Interrupts/idt.h"
 #include "stdint.h"
 #include "VESA/vga.h"
 #include "stdio.h"
@@ -61,6 +62,18 @@ uint32_t syscall_handle(interrupt_frame_t *frame) {
             // Copy to user-defined area of memory.
             memcpy((uint8_t *)a0, &tmp, sizeof(tmp));
 
+            break;
+        }
+        case 0x20: {
+            // a0: unction to hook the keyboard to (MAKE SURE THAT IT'S VALID)
+            // Returns 8-bit index inside of a padded uint32. Return 0x100 (bitmasked) if invalid.
+            int hook_err = kbd_int_connect(a0);
+            //int hook_err = 32;
+            if (hook_err < 0) {
+                ret = 0x100;
+            } else {
+                ret = (uint32_t)hook_err;
+            }
             break;
         }
         case 0x40: {

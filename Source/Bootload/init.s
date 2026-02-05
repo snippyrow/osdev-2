@@ -190,6 +190,7 @@ submit_v_mode:
     ; Transition to 32-bit protected mode by asserting cr0 bit 1
     mov eax, cr0
     or eax, 1
+    and eax, 0x7FFFFFFF ; Disable paging
     mov cr0, eax
 
     ; Long-jump to the start of the kernel.

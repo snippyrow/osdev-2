@@ -1,7 +1,7 @@
 set -o errexit # If error (non-zero return), stop.
 
 echo "Compiling.."
-CFLAGS="-ffreestanding -g -m32 -mgeneral-regs-only"
+CFLAGS="-ffreestanding -g -m32 -mgeneral-regs-only -fno-stack-protector"
 # Compile all assembly files
 # Keeping only general regs allows for C-based interrupt handlers (no asm mixing)
 
@@ -14,6 +14,9 @@ nasm -felf32 "Source/Bootload/init.s" -f bin -o "Temp/init.bin"
 nasm -f elf32 "Source/Bootload/entry.s" -o "Temp/object/entry.o"
 
 # Add compiler to PATH: export PATH="/usr/local/i386elfgcc/bin:$PATH"
+
+# Dump qemu memory: dump-guest-memory -p dump.bin 0x0 0x6400000 (clear old file first)
+
 
 # Compile all library/source files, make them into object files for linking.
 find Source -type f -name "*.cpp" | while IFS= read -r file; do
@@ -47,7 +50,7 @@ i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/shell.cpp" -o "Temp/object/tty_fn.o"
 i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/sys.cpp" -o "Temp/object/tty_sys.o"
 i386-elf-gcc -I ./TTY/Lib $CFLAGS -c "TTY/Lib/vga.cpp" -o "Temp/object/tty_vga.o"
 nasm -f elf32 "TTY/Lib/sys.s" -o "Temp/object/tty_asm.o"
-i386-elf-ld -T kernel.ld -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" "Temp/object/tty_asm.o" --oformat binary
+i386-elf-ld -Ttext 0x300000 -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" "Temp/object/tty_asm.o" --oformat binary
 
 
 
@@ -81,4 +84,4 @@ sudo cp Assets/Birds.bmp /mnt/osdev-fat32
 
 # To convert the raw image to a *.vdi, use VBoxManage convertfromraw myfat32.img myfat32.vdi --format VDI
 
-# qemu-system-x86_64 -enable-kvm -drive format=raw,file=myfat32.img,if=ide
+# qemu-system-x86_64 -enable-kvm -m 4G -monitor stdio -drive format=raw,file=myfat32.img,if=ide

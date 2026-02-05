@@ -8,14 +8,14 @@ k_call:
     mov edx, [esp + 16] ; a2
     
     ; First argument pushed last
-    push edx
-    push ecx
-    push ebx
-    push eax
+    ; push edx
+    ; push ecx
+    ; push ebx
+    ; push eax
 
     int 0x80
 
-    add esp, 16
+    ; add esp, 16
 
     ; Return placed into EAX by syscall stub
     ret ; Return back to kernel.

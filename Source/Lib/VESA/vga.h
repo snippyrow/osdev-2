@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 
+// Draw a rectangle on the screen. If MIRROR is enabled, it will immediately copy from the work buffer to the framebuffer.
 void vga_fillrect(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint32_t color, bool mirror = true);
 void vga_init();
 

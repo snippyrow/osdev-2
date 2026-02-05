@@ -6,6 +6,9 @@
 #include "Interrupts/idt.h"
 
 uint8_t *font_ptr;
+// char shell_mem[640/8][480/16];
+uint16_t cur_x = 0;
+uint16_t cur_y = 0;
 
 void putchar(char c, uint16_t x, uint16_t y, uint32_t color) {
     const uint8_t *glyph = &font_ptr[c << 4];
@@ -29,8 +32,12 @@ void putchar(char c, uint16_t x, uint16_t y, uint32_t color) {
 uint16_t z = 0;
 
 void kbd_test(uint16_t scancode) {
-    putchar(keymap[scancode], z, 200, 0);
-    z += 8;
+    putchar(keymap[scancode], cur_x * 8, cur_y * 16, 0);
+    cur_x++;
+    if (cur_x > WIN_WIDTH / 8) {
+        cur_x = 0;
+        cur_y++;
+    }
     return;
 }
 
@@ -54,7 +61,7 @@ void sh_start() {
         return;
     }
 
-    kbd_int_connect((uint32_t*)kbd_test);
+    kbd_int_connect((uint32_t)kbd_test);
 
     putchar('Z',200,200,0);
 
