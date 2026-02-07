@@ -45,13 +45,13 @@ i386-elf-ld -T kernel.ld -e _start -o "Temp/osystem.bin" -Ttext 0x7e00 "Temp/obj
 
 
 # Compile kernel-based shell programs
-# nasm -felf32 "TTY/header.s" -f bin -o "Temp/tty.bin"
-# nasm -f elf32 "TTY/header.s" -o "Temp/object/tty_entry.o"
 i386-elf-gcc -I ./TTY/Lib $CFLAGS_P -c "TTY/shell.cpp" -o "Temp/object/tty_fn.o"
 i386-elf-gcc -I ./TTY/Lib $CFLAGS_P -c "TTY/Lib/sys.cpp" -o "Temp/object/tty_sys.o"
 i386-elf-gcc -I ./TTY/Lib $CFLAGS_P -c "TTY/Lib/vga.cpp" -o "Temp/object/tty_vga.o"
+# Compile command addons
+i386-elf-gcc -I ./TTY/Lib $CFLAGS_P -c "TTY/Addons/ls.cpp" -o "Temp/object/tty_ls.o"
 nasm -f elf32 "TTY/Lib/sys.s" -o "Temp/object/tty_asm.o"
-i386-elf-ld -Ttext 0x300000 -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" "Temp/object/tty_asm.o" --oformat binary
+i386-elf-ld -Ttext 0x300000 -e _start -o "Temp/tty.bin" "Temp/object/tty_fn.o" "Temp/object/tty_sys.o" "Temp/object/tty_vga.o" "Temp/object/tty_asm.o" "Temp/object/tty_ls.o" --oformat binary
 
 
 
@@ -76,6 +76,8 @@ truncate -s %512 myfat32.img
 sudo cp Temp/tty.bin /mnt/osdev-fat32
 sudo cp Assets/font.bin /mnt/osdev-fat32
 sudo cp Assets/Birds.bmp /mnt/osdev-fat32
+
+echo "Compilation & linking completed."
 
 # mount filesystem if not done: sudo mount -o loop myfat32.img /mnt/osdev-fat32
 # sudo mount -o remount,rw /mnt/osdev-fat32 to fix it

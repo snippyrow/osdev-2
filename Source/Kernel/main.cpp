@@ -41,7 +41,7 @@ extern "C" void kmain() {
         fail();
     }
 
-    int read_err = read(starting_sector, fbuff, 5000);
+    int read_err = read(starting_sector, fbuff, 50000);
     if (read_err) {
         fail();
     }

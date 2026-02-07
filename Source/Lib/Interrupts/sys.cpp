@@ -38,7 +38,6 @@ uint32_t syscall_handle(interrupt_frame_t *frame) {
             // a0: # of blocks to allocate, return start ptr
             uint32_t* ptr = kmalloc(a0);
             ret = (uint32_t)ptr;
-            //ret = 0x10000000;
             break;
         }
         case 0x16: {

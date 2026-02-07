@@ -46,19 +46,81 @@ void putchar(uint8_t c, uint16_t x, uint16_t y, uint32_t color) {
     return;
 }
 
-void tty_println(char *string) {
+void tty_putchar(uint8_t c) {
+    putchar(c, cur_x * 8, cur_y * 16, 0xffffff00);
+    cur_x++;
+    if (cur_x > kernel_video.width / 8 - 1) {
+        cur_x = 0;
+        cur_y++;
+    }
+    putchar('\xdb', cur_x * 8, cur_y * 16, 0xffffffff);
+    return;
+}
+
+void tty_printd(int num) {
+    int n = num; // Copy for manipulation
+    uint32_t rev = 0;
+
+    if (!n) {
+        // Very inefficient doing things recursively, potential for a stack overflow.
+        // Built-in commands shouldn't worry though.
+        tty_putchar('0'); // Print zero if number zero
+        return;
+    } else if (n < 0) {
+        tty_putchar('-'); // Start by printing the negative sign (-0 is possible)
+        n = -n; // Invert
+    }
+    while (n) { // Reverse digits to print most significant digit first
+        rev = rev * 10 + (n % 10);
+        n /= 10;
+    }
+    while (rev) {
+        tty_putchar((rev % 10) + '0');
+        rev /= 10;
+    }
+    // Print the least significant zero
+    if (!(num % 10)) {
+        tty_putchar('0');
+    }
+
+    return;
+}
+
+void tty_printf(char *string, int *options) {
+    uint8_t op = 0;
     for (uint16_t i = 0; string[i]; i++) {
         switch (string[i]) {
             case ('\r'): {
+                putchar('\xdb', cur_x * 8, cur_y * 16, 0);
                 cur_x = 0;
                 break;
             }
             case ('\n'): {
+                putchar('\xdb', cur_x * 8, cur_y * 16, 0);
                 cur_y++;
                 break;
             }
             case ('\t'): {
+                putchar('\xdb', cur_x * 8, cur_y * 16, 0);
                 cur_x+=4;
+                break;
+            }
+            // Make sure that formatting allows a % to be printed.
+            case ('\\'): {
+                if (string[i+1] == '%') {
+                    putchar('%', cur_x * 8, cur_y * 16, 0xffffff00);
+                    i++;
+                    cur_x++;
+                }
+                break;
+            }
+            // My attempt at formatting for numbers.
+            case ('%'): {
+                if (string[i+1] == 'd') { // Format for decimal
+                    tty_printd(options[op]);
+                }
+                op++;
+                i++;
                 break;
             }
             default: {

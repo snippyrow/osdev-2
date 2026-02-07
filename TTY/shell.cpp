@@ -74,7 +74,7 @@ extern "C" void _start() {
     screen_set_bw(0);
 
     // Print splash & place first cursor
-    tty_println("Welcome to the kernel!\n\rI have nothing else to say.\n\r");
+    tty_printf("Welcome to the kernel!\n\rI have nothing else to say.\n\r");
 
     // Try to draw something
     for (uint32_t i = 0; i < (kernel_video.width * 10 * 3); i++) {

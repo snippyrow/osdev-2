@@ -16,7 +16,8 @@ struct vesa_syscall_return {
 void vga_fetch();
 
 void putchar(uint8_t c, uint16_t x, uint16_t y, uint32_t color);
-void tty_println(char *string);
+void tty_printf(char *string, int *options = 0); // "options" is an array of itnegers for formatting.
 void screen_set_bw(uint8_t color);
-
+void tty_putchar(uint8_t c);
+void tty_printd(int num);
 #endif

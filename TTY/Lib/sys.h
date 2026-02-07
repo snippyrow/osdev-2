@@ -2,11 +2,14 @@
 #define SYSCALLS_H
 
 #include "stdint.h"
+#include "../Addons/ls.h"
 
+#define MAX_INPUT 128
 
 int fat32_fs_read(uint32_t descriptor, uint8_t *buffer, uint32_t max_read);
 
 uint32_t malloc(uint32_t num_blocks);
+int strcmp(const char *p1, const char *p2); // Return zero if matched
 
 extern "C" uint32_t k_call(uint32_t sysno, uint32_t a0 = 0, uint32_t a1 = 0, uint32_t a2 = 0);
 
@@ -19,6 +22,7 @@ extern uint16_t cur_y;
 // This links to the pointer for the keymap we want to use. When pressing shift, it moves.
 // Not working any different, just more scale-able and branchless. Defined at start.
 extern char *scancode_map_ptr;
+extern uint32_t shell_cd;
 
 void kbd_test(uint16_t scancode);
 
@@ -62,5 +66,16 @@ const char keymap_shift[] = {
     'N', 'M', '<', '>', '?', '?', '?',
     '?', ' '
 };
+
+// Define a command class. Contains a name, function and number of parameters
+typedef int (*shell_func_t)(void);
+typedef struct shell_command {
+    const char cname[11]; // 10-byte terminated string
+    shell_func_t caller; // Function pointer, return an integer status code
+    uint8_t params;
+} shell_command;
+
+// Declare list
+extern shell_command shell_builtin_commands[];
 
 #endif

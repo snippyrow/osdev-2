@@ -1,3 +1,5 @@
 Temp/
 myfat32.img
 myfat32.vdi
+dump.bin
+myfat32-*.vdi
