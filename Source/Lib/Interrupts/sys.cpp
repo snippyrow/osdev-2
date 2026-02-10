@@ -21,7 +21,7 @@ uint32_t syscall_handle(interrupt_frame_t *frame) {
     // 0x18: ATA LBA Read from location (LBA start, #sectors, buffer ptr.)
     // 0x19: ATA LBA Write to location (LBA start, #sectors, buffer ptr.)
     // 0x1A: MALLOC (#blocks), returns ptr.
-    // 0x1B: FREE (#blocks, ptr)
+    // 0x1B: FREE (ptr, #blocks)
     // 0x20: KEYBOARD HOOK (fn. ptr), return event index
     // 0x21: KEYBOARD UNHOOK (event index)
     // 0x40: FAT32 READ (start cluster, buffer, max bytes)
@@ -38,6 +38,11 @@ uint32_t syscall_handle(interrupt_frame_t *frame) {
             // a0: # of blocks to allocate, return start ptr
             uint32_t* ptr = kmalloc(a0);
             ret = (uint32_t)ptr;
+            break;
+        }
+        case 0x1b: {
+            // Free blocks
+            kfree((void*)a0, a1);
             break;
         }
         case 0x16: {

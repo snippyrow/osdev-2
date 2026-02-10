@@ -34,6 +34,7 @@ int c_list_files(void) {
     for (uint16_t i = 0; i < 32; i++) {
         if (!dir[i].fname[0]) break; // End of directory, no file here!
         if (dir[i].attributes & 0x0F) continue; // Hidden items
+        if (dir[i].fname[0] == 0xe5) continue; // Deleted
         // Print file name
         bool space = false;
         uint8_t c = 0; // Number of characters printed for UI format
@@ -70,6 +71,9 @@ int c_list_files(void) {
             tty_printf("%d B\n\r",params);
         }
     }
+
+    // Free blocks
+    k_call(0x1b, (uint32_t)ptr, 2);
 
     
     return 0;

@@ -66,6 +66,14 @@ void memcpy(void *dest, const void *source, uint32_t nbytes) {
     }
 }
 
+void memset(void *dest, int val, uint32_t len) {
+    uint8_t *ptr = (uint8_t*)dest;
+    while (len-- > 0) {
+        *ptr++ = val;
+    }
+    return;
+}
+
 // For 512-byte blocks, size (is using 1GB RMA) is 2^30 / 512 / 8 ~= 262KB. SImply add that to the MEM_TRACKER offset for the first block.
 
 uint8_t mem_tracker[TABLE_SIZE];
@@ -110,10 +118,10 @@ void kfree(void* ptr, uint32_t size_t) {
         return;
     }
     // Check MEM_RES_BUFFER if something went wrong!
-    uint32_t start = ((uint8_t*)ptr - (uint8_t*)mem_tracker + TABLE_SIZE - HEAP_START) / MEM_BLOCK_SIZE;
+    uint32_t start_bit = ((uintptr_t)ptr - (uintptr_t)HEAP_START) / MEM_BLOCK_SIZE;
 
     for (uint32_t i = 0; i < size_t; i++) {
-        uint32_t b = start + i;
+        uint32_t b = start_bit + i;
         mem_tracker[b >> 3] &= ~(1u << (b & 7));
     }
 }

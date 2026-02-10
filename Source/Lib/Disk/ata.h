@@ -50,7 +50,7 @@ extern ata_dev ata_devicelist[4];
 int ata_lba_read(uint32_t lba_start, uint32_t sector_cnt, uint32_t buffer);
 
 // LBA write does entire blocks, it does not write only parts of blocks. Buffers to be written must be in increments of 512.
-int ata_lba_write(uint32_t lba_start, uint32_t sector_cnt, uint32_t buffer);
+int ata_lba_write(uint32_t descriptor, uint32_t sector_cnt, void *buffer);
 
 void ata_init();
 

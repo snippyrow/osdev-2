@@ -32,6 +32,7 @@ void sti();
 void cli();
 
 void memcpy(void *dest, const void *source, uint32_t nbytes);
+void memset(void *dest, int val, uint32_t len);
 
 // Allocate memory from the kernel space. When a system or user program requests memory, it is given in 512-byte chunks.
 // Variable "size_t" states how many blocks of memory are needed, and each program should manage the use internally.
@@ -40,5 +41,6 @@ void memcpy(void *dest, const void *source, uint32_t nbytes);
 
 // Alternatively, another mode could be configured to manually set kernel block size.
 uint32_t* kmalloc(uint32_t size_t);
+void kfree(void* ptr, uint32_t size_t);
 
 #endif

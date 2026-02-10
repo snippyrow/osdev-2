@@ -75,7 +75,9 @@ truncate -s %512 myfat32.img
 # Quickly copy shell program and dependancies into the root directory
 sudo cp Temp/tty.bin /mnt/osdev-fat32
 sudo cp Assets/font.bin /mnt/osdev-fat32
-sudo cp Assets/Birds.bmp /mnt/osdev-fat32
+# sudo cp Assets/Birds.bmp /mnt/osdev-fat32
+sudo cp Assets/test.jpg /mnt/osdev-fat32
+
 
 echo "Compilation & linking completed."
 

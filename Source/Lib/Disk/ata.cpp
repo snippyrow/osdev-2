@@ -28,7 +28,7 @@ int ata_lba_read(uint32_t lba_start, uint32_t sector_cnt, uint32_t buffer) {
 
     if (sector_cnt == 0 || sector_cnt > 0xFF) return -1; // Too many sectors at once for LBA28
 
-    //ata_io_wait(); // Wait for drive to be ready
+    ata_io_wait(); // Wait for drive to be ready
 
     // Drive select + highest 4 bits of LBA
     outb(base + ATA_REG_DRIVE_SELECT, 0xE0 | ((lba_start >> 24) & 0x0F));
@@ -44,14 +44,14 @@ int ata_lba_read(uint32_t lba_start, uint32_t sector_cnt, uint32_t buffer) {
     outb(base + ATA_REG_COMMAND, 0x20); // READ SECTORS
 
     // Wait for drive to acknowledge command
-    //ata_io_wait();
+    ata_io_wait();
 
     // Now read sector_count × 256 words (512 bytes)
     uint16_t* ptr = (uint16_t*)buffer;
     for (uint32_t i = 0; i < sector_cnt; i++) {
         // Wait for DRQ to be ready before trying to read each sector.
         while (!(inb(base + ATA_REG_COMMAND) & ATA_SR_DRQ));
-        //ata_io_wait();
+        ata_io_wait();
 
         // Check for errors before reading
         uint8_t status = inb(base + ATA_REG_COMMAND);
@@ -66,7 +66,65 @@ int ata_lba_read(uint32_t lba_start, uint32_t sector_cnt, uint32_t buffer) {
         }
     }
 
+
+
     ata_io_wait();
+
+    // Check final status
+    uint8_t final_status = inb(base + ATA_REG_COMMAND);
+    if (final_status & ATA_SR_ERR) return -1;
+    
+
+    return 0;
+}
+
+int ata_lba_write(uint32_t lba_start, uint32_t sector_cnt, void *buffer) {
+    uint16_t base = ata_channels[0].base; // Primary channel base IO
+
+    if (sector_cnt == 0 || sector_cnt > 0xFF) return -1; // Too many sectors at once for LBA28
+
+    ata_io_wait(); // Wait for drive to be ready
+
+    // Drive select + highest 4 bits of LBA
+    outb(base + ATA_REG_DRIVE_SELECT, 0xE0 | ((lba_start >> 24) & 0x0F));
+
+    ata_io_wait();
+
+    // Set up how many sectors we need, where the LBA address is, and then send the command (0x20) to READ.
+    outb(base + ATA_REG_SECTOR_COUNT, (uint8_t)sector_cnt);
+    outb(base + ATA_REG_LBA_LOW, (uint8_t)(lba_start >> 0));
+    outb(base + ATA_REG_LBA_MID, (uint8_t)(lba_start >> 8));
+    outb(base + ATA_REG_LBA_HIGH, (uint8_t)(lba_start >> 16));
+
+    outb(base + ATA_REG_COMMAND, 0x30); // WRITE SECTORS
+
+    // Wait for acknowledge
+    ata_io_wait();
+
+    // Write sector_count × 256 words (512 bytes)
+    uint16_t* ptr = (uint16_t*)buffer;
+    for (uint32_t i = 0; i < sector_cnt; i++) {
+        // Wait for DRQ to be ready before trying to write to each sector.
+        while (!(inb(base + ATA_REG_COMMAND) & ATA_SR_DRQ));
+        ata_io_wait();
+
+        // Check for errors before reading
+        uint8_t status = inb(base + ATA_REG_COMMAND);
+        uint8_t err = (status & 0x01) ? inb(base + ATA_REG_ERROR) : 0;
+        if (err & 0x04) return -1; // Driver bug occured (?)
+        if (err & 0x10) return -1; // Invalid LBA to be write, terminate request.
+
+
+        // Write 256 words (one sector)
+        for (uint16_t j = 0; j < 256; j++) {
+            outw(base, *ptr++);
+        }
+    }
+
+    ata_io_wait();
+
+    // Clear cache
+    outb(base + ATA_REG_COMMAND, 0xE7);
 
     // Check final status
     uint8_t final_status = inb(base + ATA_REG_COMMAND);

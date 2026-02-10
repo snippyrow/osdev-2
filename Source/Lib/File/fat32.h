@@ -67,4 +67,5 @@ int rename(uint32_t descriptor, char *str, uint32_t cluster);
 // Returns 0 if not found or error
 // Files only!!
 uint32_t find(uint32_t descriptor, char *str);
+uint32_t fat32_mko(uint32_t descriptor, fat32_dirEntry *object);
 #endif
